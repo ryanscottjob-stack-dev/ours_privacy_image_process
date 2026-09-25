@@ -1,0 +1,176 @@
+openapi: 3.0.3
+info:
+  title: Image Processing Service
+  version: 1.0.0
+  description: |
+    Fetch a remote image or video and return a transformed image.
+    GET query parameters and POST JSON bodies accept the same fields.
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Liveness check
+      responses:
+        "200":
+          description: Service is running
+  /process:
+    get:
+      summary: Transform a remote image
+      parameters:
+        - $ref: "#/components/parameters/imageUrl"
+        - $ref: "#/components/parameters/width"
+        - $ref: "#/components/parameters/height"
+        - $ref: "#/components/parameters/format"
+        - $ref: "#/components/parameters/quality"
+        - $ref: "#/components/parameters/crop"
+        - $ref: "#/components/parameters/gravity"
+        - $ref: "#/components/parameters/background"
+      responses:
+        "200":
+          description: Transformed image bytes
+          headers:
+            X-Image-Width:
+              schema: { type: integer }
+            X-Image-Height:
+              schema: { type: integer }
+            X-Image-Format:
+              schema: { type: string }
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "415":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "504":
+          $ref: "#/components/responses/Error"
+    post:
+      summary: Transform a remote image
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProcessRequest"
+      responses:
+        "200":
+          description: Transformed image bytes
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "400":
+          $ref: "#/components/responses/Error"
+  /video/thumbnail:
+    get:
+      summary: Extract one frame from a remote video
+      parameters:
+        - $ref: "#/components/parameters/imageUrl"
+        - name: time
+          in: query
+          description: Timestamp in seconds. Defaults to 0.
+          schema:
+            type: number
+            minimum: 0
+            maximum: 86400
+        - $ref: "#/components/parameters/width"
+        - $ref: "#/components/parameters/height"
+        - $ref: "#/components/parameters/format"
+        - $ref: "#/components/parameters/quality"
+        - $ref: "#/components/parameters/crop"
+      responses:
+        "200":
+          description: Thumbnail image bytes
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        "503":
+          description: ffmpeg is not installed
+components:
+  parameters:
+    imageUrl:
+      name: url
+      in: query
+      required: true
+      schema: { type: string, format: uri }
+    width:
+      name: width
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 4096 }
+    height:
+      name: height
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 4096 }
+    format:
+      name: format
+      in: query
+      schema:
+        type: string
+        enum: [jpeg, jpg, png, webp, avif, gif, tiff]
+    quality:
+      name: quality
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100 }
+    crop:
+      name: crop
+      in: query
+      schema:
+        type: string
+        enum: [scale, fit, fill, crop, pad, limit, thumb]
+    gravity:
+      name: gravity
+      in: query
+      schema:
+        type: string
+        enum: [center, north, south, east, west, northeast, northwest, southeast, southwest, attention, entropy]
+    background:
+      name: background
+      in: query
+      description: Hex color used by pad mode and JPEG flattening.
+      schema: { type: string, example: "#ffffff" }
+  schemas:
+    ProcessRequest:
+      type: object
+      required: [url]
+      additionalProperties: false
+      properties:
+        url: { type: string }
+        width: { type: integer }
+        height: { type: integer }
+        format: { type: string }
+        quality: { type: integer }
+        crop: { type: string }
+        gravity: { type: string }
+        background: { type: string }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+            details: { type: object }
+  responses:
+    Error:
+      description: Request failed
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
