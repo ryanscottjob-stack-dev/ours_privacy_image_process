@@ -25,6 +25,16 @@ describe("processImage", () => {
     expect(result).toMatchObject({ format: "png", width: 40, height: 20, contentType: "image/png" });
   });
 
+  it("resizes to the exact width and height from the process API", async () => {
+    const result = await processImage(await fixture(), { width: 10, height: 8 });
+    expect(result).toMatchObject({ width: 10, height: 8 });
+  });
+
+  it("keeps the aspect ratio when only one dimension is set", async () => {
+    const result = await processImage(await fixture(), { width: 20 });
+    expect(result).toMatchObject({ width: 20, height: 10 });
+  });
+
   it("fits inside the requested box and preserves aspect ratio", async () => {
     const result = await processImage(await fixture(), { width: 10, height: 10, crop: "fit" });
     expect(result.width).toBe(10);

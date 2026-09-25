@@ -104,7 +104,7 @@ function applyTransform(
 ): sharp.Sharp {
   const width = options.width;
   const height = options.height;
-  const crop = options.crop ?? (width || height ? "fit" : undefined);
+  const crop = options.crop ?? defaultCrop(width, height);
 
   if (!crop || (!width && !height)) {
     return image;
@@ -216,6 +216,16 @@ function compressionFromQuality(quality: number): number {
 
 function hasDimension(options: TransformOptions): boolean {
   return options.width !== undefined || options.height !== undefined;
+}
+
+function defaultCrop(width: number | undefined, height: number | undefined): CropMode | undefined {
+  if (width !== undefined && height !== undefined) {
+    return "scale";
+  }
+  if (width !== undefined || height !== undefined) {
+    return "fit";
+  }
+  return undefined;
 }
 
 export function parseHexColor(input: string | undefined, fallback: Rgba = { r: 255, g: 255, b: 255, alpha: 1 }): Rgba {

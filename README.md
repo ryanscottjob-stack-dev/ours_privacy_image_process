@@ -55,10 +55,10 @@ curl -X POST http://localhost:3000/process \
 | Field | Description |
 | --- | --- |
 | `url` | Required absolute `http` or `https` URL |
-| `width`, `height` | Output size in pixels, from 1 to 4096. Either one may be omitted to preserve aspect ratio. |
+| `width`, `height` | Output size in pixels, from 1 to 4096. Both together resize to that exact size. One alone keeps the aspect ratio. |
 | `format` | `jpeg` (`jpg`), `png`, `webp`, `avif`, `gif`, or `tiff`. Omit to keep the source format. |
 | `quality` | `1`–`100`. Defaults to `80` for lossy formats. For PNG it maps to compression level. |
-| `crop` | How `width` and `height` are applied. Defaults to `fit` when a size is present. |
+| `crop` | How `width` and `height` are applied. Defaults to `scale` when both are set, and to `fit` when only one is set. |
 | `gravity` | Anchor for `fill`, `thumb`, and `crop`: `center`, `north`, `south`, `east`, `west`, the four corners, `attention`, or `entropy`. |
 | `background` | Hex color, such as `#ffffff` or `#fff`. Used by `pad` and when flattening transparency into JPEG. |
 
@@ -70,7 +70,7 @@ Crop modes:
 | `limit` | Same as `fit`, but never enlarge. |
 | `fill` | Fill the box and crop overflow. |
 | `pad` | Fit inside the box and pad the remaining space with `background`. |
-| `scale` | Stretch to the exact box. Both dimensions are required to distort the image. |
+| `scale` | Stretch to the exact box. This is the default when both `width` and `height` are set. |
 | `crop` | Cut a region at the requested size without scaling. The region cannot be larger than the source. |
 | `thumb` | Fill the box using the visually interesting region when `gravity` is omitted. |
 
